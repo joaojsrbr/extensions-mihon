@@ -1,30 +1,30 @@
 {
-  "name": "Keiyoushi",
+  "name": "Jsr",
   "badgeLabel": "KEI",
   "signingKey": "9add655a78e96c4ec7a53ef89dccb557cb5d767489fac5e785d671a5a75d4da2",
   "contact": {
-    "website": "https://keiyoushi.github.io",
+    "website": "http://192.168.0.50:3000/joaojsr/mihon-extensions-source",
     "discord": "https://discord.gg/Mj4QadMWDh"
   },
   "extensionList": {
     "extensions": [
       {
-        "name": "AHottie",
-        "packageName": "eu.kanade.tachiyomi.extension.all.ahottie",
+        "name": "Lycan Toons",
+        "packageName": "eu.kanade.tachiyomi.extension.pt.lycantoons",
         "resources": {
-          "apkUrl": "https://raw.githubusercontent.com/keiyoushi/extensions/refs/heads/repo/apk/tachiyomi-all.ahottie-v1.4.3.apk",
-          "iconUrl": "https://raw.githubusercontent.com/keiyoushi/extensions/refs/heads/repo/icon/eu.kanade.tachiyomi.extension.all.ahottie.png"
+          "apkUrl": "http://192.168.0.50:3000/joaojsr/mihon-extensions-source/raw/branch/main/apk/tachiyomi-pt.lycantoons-v1.4.4-release.apk",
+          "iconUrl": "http://192.168.0.50:3000/joaojsr/mihon-extensions-source/raw/branch/main/icon/eu.kanade.tachiyomi.extension.pt.lycantoons.png"
         },
         "extensionLib": "1.4",
-        "versionCode": "3",
-        "versionName": "1.4.3",
-        "contentWarning": "CONTENT_WARNING_NSFW",
+        "versionCode": "4",
+        "versionName": "1.4.4",
+        "contentWarning": "CONTENT_WARNING_SAFE",
         "sources": [
           {
-            "id": "6289731484943315811",
-            "name": "AHottie",
-            "language": "all",
-            "homeUrl": "https://ahottie.top"
+            "id": "9117178890425713139",
+            "name": "Lycan Toons",
+            "language": "pt-BR",
+            "homeUrl": "https://lycantoons.com"
           }
         ]
       }
