@@ -1,7 +1,7 @@
 {
   "name": "Jsr",
-  "badgeLabel": "KEI",
-  "signingKey": "9add655a78e96c4ec7a53ef89dccb557cb5d767489fac5e785d671a5a75d4da2",
+  "badgeLabel": "JSR",
+  "signingKey": "665b87fa815a0ec29fedbc6288417b7f68a224adb993988e7e58ddb589017681",
   "contact": {
     "website": "http://192.168.0.50:3000/joaojsr/mihon-extensions-source",
     "discord": "https://discord.gg/Mj4QadMWDh"
@@ -21,7 +21,7 @@
         "contentWarning": "CONTENT_WARNING_SAFE",
         "sources": [
           {
-            "id": "9117178890425713139",
+            "id": "1",
             "name": "Lycan Toons",
             "language": "pt-BR",
             "homeUrl": "https://lycantoons.com"
