@@ -12,8 +12,8 @@
         "name": "Lycan Toons",
         "packageName": "eu.kanade.tachiyomi.extension.pt.lycantoons",
         "resources": {
-          "apkUrl": "http://192.168.0.50:3000/joaojsr/mihon-extensions-source/raw/branch/main/apk/tachiyomi-pt.lycantoons-v1.4.4-release.apk",
-          "iconUrl": "http://192.168.0.50:3000/joaojsr/mihon-extensions-source/raw/branch/main/icon/eu.kanade.tachiyomi.extension.pt.lycantoons.png"
+          "apkUrl": "https://raw.githubusercontent.com/joaojsrbr/extensions-mihon/refs/heads/main/apk/tachiyomi-pt.lycantoons-v1.4.4-release.apk",
+          "iconUrl": "https://raw.githubusercontent.com/joaojsrbr/extensions-mihon/refs/heads/main/icon/eu.kanade.tachiyomi.extension.pt.lycantoons.png"
         },
         "extensionLib": "1.4",
         "versionCode": "4",
