@@ -1,0 +1,33 @@
+{
+  "name": "Keiyoushi",
+  "badgeLabel": "KEI",
+  "signingKey": "9add655a78e96c4ec7a53ef89dccb557cb5d767489fac5e785d671a5a75d4da2",
+  "contact": {
+    "website": "https://keiyoushi.github.io",
+    "discord": "https://discord.gg/Mj4QadMWDh"
+  },
+  "extensionList": {
+    "extensions": [
+      {
+        "name": "AHottie",
+        "packageName": "eu.kanade.tachiyomi.extension.all.ahottie",
+        "resources": {
+          "apkUrl": "https://raw.githubusercontent.com/keiyoushi/extensions/refs/heads/repo/apk/tachiyomi-all.ahottie-v1.4.3.apk",
+          "iconUrl": "https://raw.githubusercontent.com/keiyoushi/extensions/refs/heads/repo/icon/eu.kanade.tachiyomi.extension.all.ahottie.png"
+        },
+        "extensionLib": "1.4",
+        "versionCode": "3",
+        "versionName": "1.4.3",
+        "contentWarning": "CONTENT_WARNING_NSFW",
+        "sources": [
+          {
+            "id": "6289731484943315811",
+            "name": "AHottie",
+            "language": "all",
+            "homeUrl": "https://ahottie.top"
+          }
+        ]
+      }
+    ]
+  }
+}
