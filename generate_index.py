@@ -398,7 +398,12 @@ def main():
                     "baseUrl": "",
                 }
             ]
-            sources_config[pkg] = {"sources": sources}
+            sources_config[pkg] = {
+                "nsfw": info.get("nsfw", 0),
+                "hasReadme": info.get("hasReadme", 0),
+                "hasChangelog": info.get("hasChangelog", 0),
+                "sources": sources,
+            }
             config_updated = True
             warnings.append(
                 f"Nova extensão detectada: {pkg}\n"
@@ -406,6 +411,7 @@ def main():
             )
 
         # Montar entrada do index
+        pkg_config = sources_config.get(pkg, {})
         entry = {
             "name": label,
             "pkg": pkg,
@@ -413,9 +419,9 @@ def main():
             "lang": lang,
             "code": info.get("code", 1),
             "version": info.get("version", "1.0.0"),
-            "nsfw": info.get("nsfw", 0),
-            "hasReadme": info.get("hasReadme", 0),
-            "hasChangelog": info.get("hasChangelog", 0),
+            "nsfw": pkg_config.get("nsfw", info.get("nsfw", 0)),
+            "hasReadme": pkg_config.get("hasReadme", info.get("hasReadme", 0)),
+            "hasChangelog": pkg_config.get("hasChangelog", info.get("hasChangelog", 0)),
             "sources": sources,
         }
 
