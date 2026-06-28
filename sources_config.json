@@ -1,0 +1,22 @@
+{
+  "eu.kanade.tachiyomi.extension.pt.lycantoons": {
+    "sources": [
+      {
+        "name": "Lycan Toons",
+        "lang": "pt-BR",
+        "id": 10,
+        "baseUrl": "https://lycantoons.com"
+      }
+    ]
+  },
+  "eu.kanade.tachiyomi.extension.pt.toonlivre": {
+    "sources": [
+      {
+        "name": "Toon Livre",
+        "lang": "pt-BR",
+        "id": 11,
+        "baseUrl": "https://toonlivre.net"
+      }
+    ]
+  }
+}
