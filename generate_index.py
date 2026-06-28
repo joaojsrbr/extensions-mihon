@@ -387,6 +387,11 @@ def main():
         # Obter configuração de fontes
         if pkg in sources_config:
             sources = sources_config[pkg]["sources"]
+            # Preencher campos ausentes se a extensão já estiver no config
+            for field in ["nsfw", "hasReadme", "hasChangelog"]:
+                if field not in sources_config[pkg]:
+                    sources_config[pkg][field] = info.get(field, 0)
+                    config_updated = True
         else:
             # Criar template automático
             ext_name = label.replace("Tachiyomi: ", "")
