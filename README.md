@@ -1,86 +1,67 @@
-# Repositório de Extensões para Mihon / Tachiyomi
+# Repositório de extensões Mihon / Tachiyomi
 
-Este projeto gerencia e gera o índice de um repositório personalizado de extensões APK para o **Mihon** (e outros leitores de mangá baseados no Tachiyomi). Ele escaneia uma pasta contendo os APKs das extensões, extrai automaticamente os metadados (como nome, pacote, versão e ícone) e gera a estrutura estática necessária para servir como repositório.
+O [generate_index.py](generate_index.py) cria os índices e links de download a partir dos APKs presentes em `apk/`. Ele usa os metadados reais dos APKs e das fontes gerados pelo Gradle.
 
-## 📁 Estrutura do Projeto
+## Estrutura
 
-* `apk/`: Diretório onde devem ser colocados os arquivos `.apk` das extensões.
-* `icon/`: Pasta onde os ícones extraídos dos APKs são salvos automaticamente (utilizados no aplicativo).
-* [generate_index.py](file:///f:/extensions-repo/generate_index.py): Script Python 3 responsável por processar os APKs e gerar os arquivos do repositório.
-* [repo.json](file:///f:/extensions-repo/repo.json): Contém os metadados do seu repositório (Nome, site e chave de assinatura).
-* [sources_config.json](file:///f:/extensions-repo/sources_config.json): Mapeamento de metadados das fontes dentro de cada extensão (como IDs, URLs base, status de NSFW, README e Changelog).
-* `index.json` / `index.min.json`: Índices de extensões gerados automaticamente pelo script (são lidos pelo app Mihon).
-* [index.html](file:///f:/extensions-repo/index.html): Página web simples gerada automaticamente com a lista de extensões para download direto via navegador.
+- `apk/`: APKs distribuídos pelo repositório.
+- `metadata/`: arquivos `keiyoushi-source-info.json` do Gradle, renomeados para `<packageName>.json`.
+- [sources_config.json](sources_config.json): configuração das fontes, atualizada com os metadados do build. Para extensões antigas sem metadados Gradle, continua sendo a configuração manual.
+- `icon/`: ícones extraídos dos APKs.
+- [repo.json](repo.json): nome, endereço e impressão digital da chave do repositório.
+- `index.json` / `index.min.json`: índices formatado e minificado.
+- [index.html](index.html): links para os APKs disponíveis.
 
-## 🛠️ Pré-requisitos
+## Requisitos
 
-1. **Python 3.x** instalado.
-2. *(Opcional, mas recomendado)* **Android SDK (aapt2)**:
-    * O script tenta localizar o utilitário `aapt2` automaticamente no PATH do sistema, nas variáveis de ambiente `ANDROID_HOME` / `ANDROID_SDK_ROOT` ou nos caminhos padrão de instalação do Android Studio.
-    * **Vantagem**: Com o `aapt2`, o script consegue extrair com precisão os metadados e o ícone diretamente do binário do APK.
-    * **Fallback**: Caso o `aapt2` não esteja instalado ou configurado, o script fará o parsing baseado no nome do arquivo do APK (ex: `tachiyomi-pt.lycantoons-v1.4.5-release.apk`), mas os ícones das extensões não serão extraídos.
+- Python **3.10 ou superior**. Confira com `python --version`; Python 2 não executa o gerador.
+- Android SDK com `aapt2`. Informe `--sdk`, configure `ANDROID_HOME` / `ANDROID_SDK_ROOT` ou disponibilize `aapt2` no PATH.
+- `apksigner`, incluído no Android SDK, para verificar os certificados dos APKs.
 
-## 🚀 Como Usar
+O código de versão é lido do APK. O gerador não calcula esse valor a partir do nome do arquivo: `1.6.10`, por exemplo, não significa que o `versionCode` seja `10`.
 
-### 1. Configurar o Repositório (`repo.json`)
+## Atualizar uma extensão
 
-Antes de rodar o script, configure os dados do seu repositório no arquivo [repo.json](file:///f:/extensions-repo/repo.json):
+1. Compile a extensão em modo release:
 
-```json
-{
-  "meta": {
-    "name": "Apex Repo",
-    "website": "https://github.com/joaojsrbr/extensions-mihon",
-    "signingKeyFingerprint": "665b87fa815a0ec29fedbc6288417b7f68a224adb993988e7e58ddb589017681"
-  }
-}
-```
+   ```powershell
+   .\gradlew.bat :src:pt:egotoons:assembleRelease --console=plain
+   ```
 
-### 2. Adicionar as Extensões (APKs)
+2. Copie o APK de `src/pt/egotoons/build/outputs/apk/release/` para `apk/`.
+3. Copie `src/pt/egotoons/build/keiyoushi-source-info.json` para `metadata/eu.kanade.tachiyomi.extension.pt.egotoons.json`. APK e metadados devem vir do mesmo build.
+4. Gere os índices usando um executável Python 3:
 
-Coloque os arquivos `.apk` das suas extensões dentro da pasta `apk/`.
+   ```powershell
+   python generate_index.py --sdk D:\Android_sdk
+   ```
 
-### 3. Executar o Script de Geração
-
-Abra o terminal na raiz do projeto e execute:
+Também é possível informar outro diretório de metadados:
 
 ```powershell
-python generate_index.py
+python generate_index.py --sdk D:\Android_sdk --metadata-dir caminho\dos\metadados
 ```
 
-### 4. Configurar Novas Extensões (`sources_config.json`)
+O gerador seleciona a maior versão de cada pacote, preserva os IDs das fontes como strings para evitar perda de precisão e atualiza a classificação de conteúdo a partir do manifesto. APKs ilegíveis, metadados de versões diferentes e fontes incompletas interrompem a geração antes da substituição dos índices. Cada arquivo gerado é substituído por uma gravação temporária no mesmo diretório.
 
-Se você adicionar uma nova extensão pela primeira vez, o script irá detectá-la automaticamente e adicioná-la com valores padrão ao arquivo [sources_config.json](file:///f:/extensions-repo/sources_config.json).
+## Assinatura antes da publicação
 
-Abra o arquivo [sources_config.json](file:///f:/extensions-repo/sources_config.json) e configure os campos corretos para a nova extensão, como o `id` e a `baseUrl` correspondentes:
+Todos os APKs precisam ser assinados com a chave esperada em `repo.json`. O gerador avisa quando o certificado difere e não troca automaticamente a impressão digital configurada.
 
-```json
-  "eu.kanade.tachiyomi.extension.pt.lycantoons": {
-    "nsfw": 0,
-    "hasReadme": 0,
-    "hasChangelog": 0,
-    "sources": [
-      {
-        "name": "Lycan Toons",
-        "lang": "pt-BR",
-        "id": 10,
-        "baseUrl": "https://lycantoons.com"
-      }
-    ]
-  }
+Os APKs atuais foram assinados com `D:\android_key\mihon_extensions.jks`, usando o alias `joaojsr`. O certificado SHA-256 corresponde à impressão digital declarada em `repo.json`:
+
+```text
+665b87fa815a0ec29fedbc6288417b7f68a224adb993988e7e58ddb589017681
 ```
 
-*Nota: Após atualizar as configurações no `sources_config.json`, execute o script `python generate_index.py` novamente para gerar o índice definitivo com os IDs corretos.*
+A cada novo build, assine o APK com essa mesma chave antes de copiá-lo para o repositório. Um `assembleRelease` sem uma chave de produção configurada pode gerar um APK assinado com a chave de depuração. Não salve senhas no repositório.
 
-## 📱 Adicionando o Repositório no Mihon / Tachiyomi
+## Endereço do índice
 
-Para usar as extensões geradas pelo seu repositório no aplicativo:
+Após publicar os arquivos, o endereço configurado para o repositório é:
 
-1. Copie a URL do repositório:
+```text
+https://raw.githubusercontent.com/joaojsrbr/extensions-mihon/refs/heads/main/index.min.json
+```
 
-   ```
-   https://raw.githubusercontent.com/joaojsrbr/extensions-mihon/refs/heads/main/index.min.json
-   ```
-
-2. No aplicativo **Mihon**, vá em **Configurações** > **Procurar** > **Repositórios de extensões** > **Adicionar repositório**.
-3. Cole a URL do repositório e confirme.
+Atualizar os arquivos locais não publica alterações no GitHub.

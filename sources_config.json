@@ -2,9 +2,9 @@
   "eu.kanade.tachiyomi.extension.pt.lycantoons": {
     "sources": [
       {
+        "id": "9117178890425713139",
         "name": "Lycan Toons",
         "lang": "pt-BR",
-        "id": 12,
         "baseUrl": "https://lycantoons.com"
       }
     ],
@@ -15,13 +15,26 @@
   "eu.kanade.tachiyomi.extension.pt.toonlivre": {
     "sources": [
       {
+        "id": "2477792955555112202",
         "name": "Toon Livre",
         "lang": "pt-BR",
-        "id": 11,
         "baseUrl": "https://toonlivre.net"
       }
     ],
-    "nsfw": 0,
+    "nsfw": 1,
+    "hasReadme": 0,
+    "hasChangelog": 0
+  },
+  "eu.kanade.tachiyomi.extension.pt.egotoons": {
+    "sources": [
+      {
+        "id": "4749792168996703143",
+        "name": "Ego Toons",
+        "lang": "pt-BR",
+        "baseUrl": "https://egotoons.com"
+      }
+    ],
+    "nsfw": 1,
     "hasReadme": 0,
     "hasChangelog": 0
   }

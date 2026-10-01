@@ -3,20 +3,23 @@
 Gera index.min.json, index.json e index.html para repositório de extensões Mihon/Tachiyomi.
 
 Uso:
-    python generate_index.py
+    python generate_index.py --sdk D:\\Android_sdk
 
 O script:
   1. Escaneia a pasta apk/ por arquivos .apk
-  2. Extrai metadados via aapt2 (ou pelo nome do arquivo como fallback)
+  2. Extrai os códigos de versão e a classificação de conteúdo reais via aapt2
   3. Extrai ícones dos APKs para a pasta icon/
-  4. Lê configuração de fontes de sources_config.json
-  5. Gera index.min.json, index.json e index.html
+  4. Lê os IDs e URLs dos metadados Gradle ou de sources_config.json para APKs antigos
+  5. Confere assinaturas e gera índices com uma versão por pacote
 """
 
+import argparse
+import html
 import json
 import os
 import re
 import subprocess
+import shutil
 import sys
 import zipfile
 from pathlib import Path
@@ -31,12 +34,27 @@ INDEX_JSON = SCRIPT_DIR / "index.json"
 INDEX_MIN_JSON = SCRIPT_DIR / "index.min.json"
 INDEX_HTML = SCRIPT_DIR / "index.html"
 SOURCES_CONFIG = SCRIPT_DIR / "sources_config.json"
+METADATA_DIR = SCRIPT_DIR / "metadata"
+
+
+def write_text_atomic(path, content):
+    temporary = path.with_name(f".{path.name}.tmp")
+    try:
+        temporary.write_text(content, encoding="utf-8", newline="\n")
+        temporary.replace(path)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def sdk_version_key(path):
+    numbers = tuple(int(part) for part in re.findall(r"\d+", path.name))
+    return numbers[:3], "-" not in path.name, numbers[3:]
 
 
 # =============================================================================
 # Buscar aapt2
 # =============================================================================
-def find_aapt2():
+def find_aapt2(sdk=None):
     """Procura o binário aapt2 no PATH e no Android SDK."""
     # Tentar no PATH
     aapt2_name = "aapt2.exe" if sys.platform == "win32" else "aapt2"
@@ -52,8 +70,7 @@ def find_aapt2():
         pass
 
     # Tentar via ANDROID_HOME / ANDROID_SDK_ROOT
-    for env_var in ("ANDROID_HOME", "ANDROID_SDK_ROOT"):
-        sdk_path = os.environ.get(env_var)
+    for sdk_path in (sdk, os.environ.get("ANDROID_HOME"), os.environ.get("ANDROID_SDK_ROOT")):
         if not sdk_path:
             continue
         build_tools = Path(sdk_path) / "build-tools"
@@ -62,7 +79,7 @@ def find_aapt2():
         # Pegar a versão mais recente
         versions = sorted(
             [d for d in build_tools.iterdir() if d.is_dir()],
-            key=lambda p: p.name,
+            key=sdk_version_key,
             reverse=True,
         )
         for version_dir in versions:
@@ -78,7 +95,7 @@ def find_aapt2():
             if sdk_dir.exists():
                 versions = sorted(
                     [d for d in sdk_dir.iterdir() if d.is_dir()],
-                    key=lambda p: p.name,
+                    key=sdk_version_key,
                     reverse=True,
                 )
                 for version_dir in versions:
@@ -104,11 +121,12 @@ def parse_apk_aapt2(apk_path, aapt2):
             timeout=30,
         )
         output = result.stdout
-    except (subprocess.TimeoutExpired, Exception) as e:
+    except (OSError, subprocess.TimeoutExpired) as e:
         print(f"    ❌ Erro ao executar aapt2: {e}")
         return None
 
-    if not output:
+    if result.returncode != 0 or not output:
+        print(f"    ❌ aapt2 não conseguiu ler {apk_path.name}: {result.stderr.strip()}")
         return None
 
     info = {}
@@ -141,71 +159,84 @@ def parse_apk_aapt2(apk_path, aapt2):
     if m:
         info["label"] = m.group(1)
 
-    # Meta-data: NSFW
-    nsfw_match = re.search(
-        r"meta-data:.*?name='tachiyomi\.extension\.nsfw'.*?value='(\d+)'",
-        output,
-    )
-    info["nsfw"] = int(nsfw_match.group(1)) if nsfw_match else 0
-
-    # Meta-data: hasReadme
-    readme_match = re.search(
-        r"meta-data:.*?name='tachiyomi\.extension\.hasReadme'.*?value='(\d+)'",
-        output,
-    )
-    info["hasReadme"] = int(readme_match.group(1)) if readme_match else 0
-
-    # Meta-data: hasChangelog
-    changelog_match = re.search(
-        r"meta-data:.*?name='tachiyomi\.extension\.hasChangelog'.*?value='(\d+)'",
-        output,
-    )
-    info["hasChangelog"] = int(changelog_match.group(1)) if changelog_match else 0
+    # Badging does not expose application meta-data; read the compiled manifest.
+    manifest = subprocess.run(
+        [aapt2, "dump", "xmltree", "--file", "AndroidManifest.xml", str(apk_path)],
+        capture_output=True, text=True, encoding="utf-8", errors="replace",
+        timeout=30, check=True,
+    ).stdout
+    values = {}
+    for block in re.findall(r"E: meta-data.*?(?=\n\s*E:|\Z)", manifest, re.S):
+        name = re.search(r':name\([^)]*\)="([^"]+)"', block)
+        value = re.search(r':value\([^)]*\)=(0x[0-9a-fA-F]+|\d+)', block)
+        if name and value:
+            values[name.group(1)] = int(value.group(1), 0)
+    for field in ("nsfw", "hasReadme", "hasChangelog"):
+        info[field] = values.get(f"tachiyomi.extension.{field}", 0)
 
     # Icon path (para extração)
-    icon_match = re.search(r"application:.*?icon='([^']+)'", output)
-    if icon_match:
-        info["icon_path"] = icon_match.group(1)
+    icons = re.findall(r"application-icon-(\d+):'([^']+)'", output)
+    if icons:
+        info["icon_path"] = max(icons, key=lambda icon: int(icon[0]))[1]
+    else:
+        icon_match = re.search(r"application:.*?icon='([^']+)'", output)
+        if icon_match:
+            info["icon_path"] = icon_match.group(1)
 
-    return info if "pkg" in info else None
+    return info if all(field in info for field in ("pkg", "code", "version")) else None
 
 
 # =============================================================================
-# Fallback: extrair metadados do nome do arquivo
+# Metadados das fontes gerados pelo Gradle
 # =============================================================================
-def parse_apk_filename(filename):
-    """
-    Fallback: extrai metadados do nome do arquivo APK.
-    Formato esperado: tachiyomi-<lang>.<name>-v<version>[-release].apk
-    Exemplo: tachiyomi-pt.lycantoons-v1.4.4-release.apk
-    """
-    m = re.match(
-        r"tachiyomi-([a-z]+(?:-[a-z]+)?)\.([a-z0-9]+)-v([\d.]+)(?:-release)?\.apk",
-        filename,
-        re.IGNORECASE,
-    )
-    if not m:
+def load_source_metadata(info, metadata_dir):
+    metadata_path = metadata_dir / f"{info['pkg']}.json"
+    if not metadata_path.exists():
         return None
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    expected = (info["pkg"], info["code"], info["version"])
+    actual = (metadata["packageName"], metadata["versionCode"], metadata["versionName"])
+    if actual != expected:
+        raise ValueError(f"Metadados desatualizados em {metadata_path.name}; copie os metadados do mesmo build do APK")
+    return metadata
 
-    lang_code = m.group(1)
-    name = m.group(2)
-    version = m.group(3)
 
-    # Derivar versionCode do último segmento da versão
-    version_parts = version.split(".")
-    code = int(version_parts[-1]) if version_parts else 1
+def validate_sources(sources, pkg):
+    if not sources:
+        raise ValueError(f"{pkg}: nenhuma fonte configurada")
+    normalized = []
+    for source in sources:
+        source_id = int(source["id"])
+        if not 0 < source_id <= 2**63 - 1 or not source.get("name") or not source.get("lang"):
+            raise ValueError(f"{pkg}: fonte com ID, nome ou idioma inválido")
+        if not re.match(r"https?://[^/]+", source.get("baseUrl", "")):
+            raise ValueError(f"{pkg}: URL da fonte ausente ou inválida")
+        # Strings preserve 64-bit IDs when consumers read the JSON with JavaScript.
+        normalized.append({**source, "id": str(source_id)})
+    return normalized
 
-    pkg = f"eu.kanade.tachiyomi.extension.{lang_code}.{name}"
 
-    return {
-        "pkg": pkg,
-        "code": code,
-        "version": version,
-        "label": f"Tachiyomi: {name.replace('_', ' ').title()}",
-        "nsfw": 0,
-        "hasReadme": 0,
-        "hasChangelog": 0,
-    }
+def signing_warnings(aapt2, apk_paths):
+    aapt_path = Path(shutil.which(aapt2) or aapt2)
+    signer = aapt_path.with_name("apksigner.bat" if sys.platform == "win32" else "apksigner")
+    if not signer.exists():
+        return ["apksigner não encontrado; a chave de assinatura não foi conferida"]
+    repo_path = SCRIPT_DIR / "repo.json"
+    if not repo_path.exists():
+        return []
+    configured = json.loads(repo_path.read_text(encoding="utf-8"))["meta"]["signingKeyFingerprint"].lower()
+    warnings = []
+    for apk_path in apk_paths:
+        result = subprocess.run(
+            [str(signer), "verify", "--print-certs", str(apk_path)],
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30,
+        )
+        if result.returncode != 0:
+            raise ValueError(f"Assinatura inválida: {apk_path.name}")
+        fingerprints = re.findall(r"certificate SHA-256 digest: ([0-9a-fA-F]{64})", result.stdout)
+        if configured not in [fingerprint.lower() for fingerprint in fingerprints]:
+            warnings.append(f"{apk_path.name}: certificado diferente de repo.json. Assine com a chave original antes de publicar.")
+    return warnings
 
 
 # =============================================================================
@@ -282,27 +313,26 @@ def load_sources_config():
 
 def save_sources_config(config):
     """Salva configuração de fontes no sources_config.json."""
-    with open(SOURCES_CONFIG, "w", encoding="utf-8", newline="\n") as f:
-        json.dump(config, f, indent=2, ensure_ascii=False)
-        f.write("\n")
+    write_text_atomic(SOURCES_CONFIG, json.dumps(config, indent=2, ensure_ascii=False) + "\n")
 
 
 def generate_html(extensions):
     """Gera o index.html com links para os APKs."""
     links = []
     for ext in extensions:
-        name = ext["name"].replace("Tachiyomi: ", "")
-        apk = ext["apk"]
-        version = ext["version"]
-        lang = ext["lang"]
+        name = html.escape(ext["name"].removeprefix("Tachiyomi: "))
+        apk = html.escape(ext["apk"], quote=True)
+        version = html.escape(ext["version"])
+        lang = html.escape(ext["lang"])
         links.append(f'<a href="apk/{apk}">{name} v{version} [{lang}]</a>')
 
     links_str = "\n".join(links)
 
-    html = f"""<!DOCTYPE html>
+    page = f"""<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Extensões Mihon - Repositório</title>
 </head>
 <body>
@@ -313,14 +343,17 @@ def generate_html(extensions):
 </body>
 </html>
 """
-    with open(INDEX_HTML, "w", encoding="utf-8", newline="\n") as f:
-        f.write(html)
+    write_text_atomic(INDEX_HTML, page)
 
 
 # =============================================================================
 # Main
 # =============================================================================
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--sdk", type=Path, help="Diretório do Android SDK")
+    parser.add_argument("--metadata-dir", type=Path, default=METADATA_DIR, help="Metadados keiyoushi-source-info.json renomeados por pacote")
+    args = parser.parse_args()
     print("=" * 60)
     print("  Gerador de index.min.json - Repositório Mihon")
     print("=" * 60)
@@ -333,14 +366,12 @@ def main():
 
     # Buscar aapt2
     print("\n🔍 Procurando aapt2...")
-    aapt2 = find_aapt2()
+    aapt2 = find_aapt2(args.sdk)
 
     if aapt2:
         print(f"   ✅ Encontrado: {aapt2}")
     else:
-        print("   ⚠️  aapt2 não encontrado!")
-        print("   Usando fallback (parsing do nome do arquivo).")
-        print("   Para resultados mais precisos, instale o Android SDK.")
+        raise ValueError("aapt2 não encontrado. Use --sdk ou configure ANDROID_HOME; o nome do arquivo não contém o versionCode real.")
 
     # Carregar config de fontes
     sources_config = load_sources_config()
@@ -353,27 +384,27 @@ def main():
 
     print(f"\n📦 {len(apk_files)} APK(s) encontrado(s)\n")
 
+    selected = {}
+    warnings = []
+    for apk_path in apk_files:
+        info = parse_apk_aapt2(apk_path, aapt2)
+        if info is None:
+            raise ValueError(f"Não foi possível ler {apk_path.name}; os índices existentes foram preservados")
+        previous = selected.get(info["pkg"])
+        if previous is None or info["code"] > previous[1]["code"]:
+            if previous:
+                warnings.append(f"Versão antiga omitida: {previous[0].name}")
+            selected[info["pkg"]] = (apk_path, info)
+        else:
+            warnings.append(f"Versão duplicada ou antiga omitida: {apk_path.name}")
+    warnings.extend(signing_warnings(aapt2, [item[0] for item in selected.values()]))
+
     extensions = []
     config_updated = False
-    warnings = []
 
-    for apk_path in apk_files:
+    for pkg in sorted(selected):
+        apk_path, info = selected[pkg]
         print(f"  📱 {apk_path.name}")
-
-        # Extrair metadados
-        info = None
-        if aapt2:
-            info = parse_apk_aapt2(apk_path, aapt2)
-
-        if not info:
-            info = parse_apk_filename(apk_path.name)
-
-        if not info or "pkg" not in info:
-            print(f"     ❌ Não foi possível extrair metadados!")
-            warnings.append(f"APK ignorado: {apk_path.name}")
-            continue
-
-        pkg = info["pkg"]
         lang = get_lang_from_pkg(pkg)
         label = info.get("label", f"Tachiyomi: {pkg.split('.')[-1].title()}")
 
@@ -385,35 +416,17 @@ def main():
             print(f"     ⚠️  Ícone não encontrado no APK")
 
         # Obter configuração de fontes
-        if pkg in sources_config:
-            sources = sources_config[pkg]["sources"]
-            # Preencher campos ausentes se a extensão já estiver no config
-            for field in ["nsfw", "hasReadme", "hasChangelog"]:
-                if field not in sources_config[pkg]:
-                    sources_config[pkg][field] = info.get(field, 0)
-                    config_updated = True
+        metadata = load_source_metadata(info, args.metadata_dir)
+        if metadata:
+            sources = validate_sources(metadata["sources"], pkg)
+        elif pkg in sources_config:
+            sources = validate_sources(sources_config[pkg]["sources"], pkg)
         else:
-            # Criar template automático
-            ext_name = label.replace("Tachiyomi: ", "")
-            sources = [
-                {
-                    "name": ext_name,
-                    "lang": lang,
-                    "id": 0,
-                    "baseUrl": "",
-                }
-            ]
-            sources_config[pkg] = {
-                "nsfw": info.get("nsfw", 0),
-                "hasReadme": info.get("hasReadme", 0),
-                "hasChangelog": info.get("hasChangelog", 0),
-                "sources": sources,
-            }
+            raise ValueError(f"{pkg}: copie o keiyoushi-source-info.json do build para metadata/{pkg}.json; IDs provisórios não serão publicados")
+        config = {"sources": sources, **{field: info[field] for field in ("nsfw", "hasReadme", "hasChangelog")}}
+        if sources_config.get(pkg) != config:
+            sources_config[pkg] = config
             config_updated = True
-            warnings.append(
-                f"Nova extensão detectada: {pkg}\n"
-                f"       → Edite sources_config.json e preencha 'id' e 'baseUrl'"
-            )
 
         # Montar entrada do index
         pkg_config = sources_config.get(pkg, {})
@@ -422,8 +435,8 @@ def main():
             "pkg": pkg,
             "apk": apk_path.name,
             "lang": lang,
-            "code": info.get("code", 1),
-            "version": info.get("version", "1.0.0"),
+            "code": info["code"],
+            "version": info["version"],
             "nsfw": pkg_config.get("nsfw", info.get("nsfw", 0)),
             "hasReadme": pkg_config.get("hasReadme", info.get("hasReadme", 0)),
             "hasChangelog": pkg_config.get("hasChangelog", info.get("hasChangelog", 0)),
@@ -443,15 +456,11 @@ def main():
         print(f"\n📝 sources_config.json atualizado")
 
     # Gerar index.json (formatado)
-    with open(INDEX_JSON, "w", encoding="utf-8", newline="\n") as f:
-        json.dump(extensions, f, indent=2, ensure_ascii=False)
-        f.write("\n")
+    write_text_atomic(INDEX_JSON, json.dumps(extensions, indent=2, ensure_ascii=False) + "\n")
     print(f"\n📄 index.json gerado ({INDEX_JSON.name})")
 
     # Gerar index.min.json (minificado)
-    with open(INDEX_MIN_JSON, "w", encoding="utf-8", newline="\n") as f:
-        json.dump(extensions, f, separators=(",", ":"), ensure_ascii=False)
-        f.write("\n")
+    write_text_atomic(INDEX_MIN_JSON, json.dumps(extensions, separators=(",", ":"), ensure_ascii=False) + "\n")
     print(f"📄 index.min.json gerado ({INDEX_MIN_JSON.name})")
 
     # Gerar index.html
@@ -473,4 +482,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except (OSError, ValueError, KeyError, subprocess.SubprocessError, zipfile.BadZipFile) as error:
+        print(f"\n❌ {error}", file=sys.stderr)
+        sys.exit(1)
