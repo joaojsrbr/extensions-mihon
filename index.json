@@ -2,10 +2,10 @@
   {
     "name": "Tachiyomi: Ego Toons",
     "pkg": "eu.kanade.tachiyomi.extension.pt.egotoons",
-    "apk": "tachiyomi-pt.egotoons-v1.6.10.apk",
+    "apk": "tachiyomi-pt.egotoons-v1.6.11.apk",
     "lang": "pt-BR",
-    "code": 106010,
-    "version": "1.6.10",
+    "code": 106011,
+    "version": "1.6.11",
     "nsfw": 1,
     "hasReadme": 0,
     "hasChangelog": 0,
