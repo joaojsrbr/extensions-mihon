@@ -38,6 +38,25 @@
     ]
   },
   {
+    "name": "Tachiyomi: Nexo Toons",
+    "pkg": "eu.kanade.tachiyomi.extension.pt.nexotoons",
+    "apk": "tachiyomi-pt.nexotoons-v1.6.2.apk",
+    "lang": "pt-BR",
+    "code": 106002,
+    "version": "1.6.2",
+    "nsfw": 1,
+    "hasReadme": 0,
+    "hasChangelog": 0,
+    "sources": [
+      {
+        "id": "637762255926667476",
+        "name": "Nexo Toons",
+        "lang": "pt-BR",
+        "baseUrl": "https://egotoons.com"
+      }
+    ]
+  },
+  {
     "name": "Tachiyomi: Toon Livre",
     "pkg": "eu.kanade.tachiyomi.extension.pt.toonlivre",
     "apk": "tachiyomi-pt.toonlivre-v1.6.17.apk",
