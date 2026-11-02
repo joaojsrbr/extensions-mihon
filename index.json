@@ -21,10 +21,10 @@
   {
     "name": "Tachiyomi: Lycan Toons",
     "pkg": "eu.kanade.tachiyomi.extension.pt.lycantoons",
-    "apk": "tachiyomi-pt.lycantoons-v1.6.16.apk",
+    "apk": "tachiyomi-pt.lycantoons-v1.6.17.apk",
     "lang": "pt-BR",
-    "code": 106016,
-    "version": "1.6.16",
+    "code": 106017,
+    "version": "1.6.17",
     "nsfw": 0,
     "hasReadme": 0,
     "hasChangelog": 0,
