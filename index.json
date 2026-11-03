@@ -57,6 +57,25 @@
     ]
   },
   {
+    "name": "Tachiyomi: Tia Manhwa",
+    "pkg": "eu.kanade.tachiyomi.extension.pt.tiamanhwa",
+    "apk": "tachiyomi-pt.tiamanhwa-v1.6.58.apk",
+    "lang": "pt-BR",
+    "code": 106058,
+    "version": "1.6.58",
+    "nsfw": 1,
+    "hasReadme": 0,
+    "hasChangelog": 0,
+    "sources": [
+      {
+        "id": "8823653003339002799",
+        "name": "Tia Manhwa",
+        "lang": "pt-BR",
+        "baseUrl": "https://tiamanhwa.com"
+      }
+    ]
+  },
+  {
     "name": "Tachiyomi: Toon Livre",
     "pkg": "eu.kanade.tachiyomi.extension.pt.toonlivre",
     "apk": "tachiyomi-pt.toonlivre-v1.6.17.apk",

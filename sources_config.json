@@ -50,5 +50,18 @@
     "nsfw": 1,
     "hasReadme": 0,
     "hasChangelog": 0
+  },
+  "eu.kanade.tachiyomi.extension.pt.tiamanhwa": {
+    "sources": [
+      {
+        "id": "8823653003339002799",
+        "name": "Tia Manhwa",
+        "lang": "pt-BR",
+        "baseUrl": "https://tiamanhwa.com"
+      }
+    ],
+    "nsfw": 1,
+    "hasReadme": 0,
+    "hasChangelog": 0
   }
 }
