@@ -78,10 +78,10 @@
   {
     "name": "Tachiyomi: Tia Manhwa",
     "pkg": "eu.kanade.tachiyomi.extension.pt.tiamanhwa",
-    "apk": "tachiyomi-pt.tiamanhwa-v1.6.58.apk",
+    "apk": "tachiyomi-pt.tiamanhwa-v1.6.59.apk",
     "lang": "pt-BR",
-    "code": 106058,
-    "version": "1.6.58",
+    "code": 106059,
+    "version": "1.6.59",
     "nsfw": 1,
     "hasReadme": 0,
     "hasChangelog": 0,
