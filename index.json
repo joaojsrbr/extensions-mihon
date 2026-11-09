@@ -1,5 +1,24 @@
 [
   {
+    "name": "Tachiyomi: Blitz Toons",
+    "pkg": "eu.kanade.tachiyomi.extension.pt.blitztoons",
+    "apk": "tachiyomi-pt.blitztoons-v1.6.1.apk",
+    "lang": "pt-BR",
+    "code": 106001,
+    "version": "1.6.1",
+    "nsfw": 0,
+    "hasReadme": 0,
+    "hasChangelog": 0,
+    "sources": [
+      {
+        "id": "2916575821827748941",
+        "name": "Blitz Toons",
+        "lang": "pt-BR",
+        "baseUrl": "https://blitztoons.com"
+      }
+    ]
+  },
+  {
     "name": "Tachiyomi: Ego Toons",
     "pkg": "eu.kanade.tachiyomi.extension.pt.egotoons",
     "apk": "tachiyomi-pt.egotoons-v1.6.11.apk",

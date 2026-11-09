@@ -63,5 +63,18 @@
     "nsfw": 1,
     "hasReadme": 0,
     "hasChangelog": 0
+  },
+  "eu.kanade.tachiyomi.extension.pt.blitztoons": {
+    "sources": [
+      {
+        "id": "2916575821827748941",
+        "name": "Blitz Toons",
+        "lang": "pt-BR",
+        "baseUrl": "https://blitztoons.com"
+      }
+    ],
+    "nsfw": 0,
+    "hasReadme": 0,
+    "hasChangelog": 0
   }
 }
