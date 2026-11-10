@@ -1,2 +1,8 @@
 metadata
 keiyoushi/
+*.jks
+*.keystore
+*.key
+*.properties
+*.env
+*.tmp
