@@ -2,10 +2,10 @@
   {
     "name": "Tachiyomi: Blitz Toons",
     "pkg": "eu.kanade.tachiyomi.extension.pt.blitztoons",
-    "apk": "tachiyomi-pt.blitztoons-v1.6.3.apk",
+    "apk": "tachiyomi-pt.blitztoons-v1.6.4.apk",
     "lang": "pt-BR",
-    "code": 106003,
-    "version": "1.6.3",
+    "code": 106004,
+    "version": "1.6.4",
     "nsfw": 0,
     "hasReadme": 0,
     "hasChangelog": 0,
@@ -21,10 +21,10 @@
   {
     "name": "Tachiyomi: Ego Toons",
     "pkg": "eu.kanade.tachiyomi.extension.pt.egotoons",
-    "apk": "tachiyomi-pt.egotoons-v1.6.11.apk",
+    "apk": "tachiyomi-pt.egotoons-v1.6.12.apk",
     "lang": "pt-BR",
-    "code": 106011,
-    "version": "1.6.11",
+    "code": 106012,
+    "version": "1.6.12",
     "nsfw": 1,
     "hasReadme": 0,
     "hasChangelog": 0,
@@ -40,10 +40,10 @@
   {
     "name": "Tachiyomi: Lycan Toons",
     "pkg": "eu.kanade.tachiyomi.extension.pt.lycantoons",
-    "apk": "tachiyomi-pt.lycantoons-v1.6.21.apk",
+    "apk": "tachiyomi-pt.lycantoons-v1.6.22.apk",
     "lang": "pt-BR",
-    "code": 106021,
-    "version": "1.6.21",
+    "code": 106022,
+    "version": "1.6.22",
     "nsfw": 0,
     "hasReadme": 0,
     "hasChangelog": 0,
@@ -59,10 +59,10 @@
   {
     "name": "Tachiyomi: Nexo Toons",
     "pkg": "eu.kanade.tachiyomi.extension.pt.nexotoons",
-    "apk": "tachiyomi-pt.nexotoons-v1.6.2.apk",
+    "apk": "tachiyomi-pt.nexotoons-v1.6.4.apk",
     "lang": "pt-BR",
-    "code": 106002,
-    "version": "1.6.2",
+    "code": 106004,
+    "version": "1.6.4",
     "nsfw": 1,
     "hasReadme": 0,
     "hasChangelog": 0,
@@ -78,10 +78,10 @@
   {
     "name": "Tachiyomi: Tia Manhwa",
     "pkg": "eu.kanade.tachiyomi.extension.pt.tiamanhwa",
-    "apk": "tachiyomi-pt.tiamanhwa-v1.6.59.apk",
+    "apk": "tachiyomi-pt.tiamanhwa-v1.6.60.apk",
     "lang": "pt-BR",
-    "code": 106059,
-    "version": "1.6.59",
+    "code": 106060,
+    "version": "1.6.60",
     "nsfw": 1,
     "hasReadme": 0,
     "hasChangelog": 0,
@@ -97,10 +97,10 @@
   {
     "name": "Tachiyomi: Toon Livre",
     "pkg": "eu.kanade.tachiyomi.extension.pt.toonlivre",
-    "apk": "tachiyomi-pt.toonlivre-v1.6.17.apk",
+    "apk": "tachiyomi-pt.toonlivre-v1.6.18.apk",
     "lang": "pt-BR",
-    "code": 106017,
-    "version": "1.6.17",
+    "code": 106018,
+    "version": "1.6.18",
     "nsfw": 1,
     "hasReadme": 0,
     "hasChangelog": 0,
@@ -109,7 +109,11 @@
         "id": "2477792955555112202",
         "name": "Toon Livre",
         "lang": "pt-BR",
-        "baseUrl": "https://toonlivre.net"
+        "baseUrl": "https://toonlivre.net",
+        "mirrorUrls": [
+          "https://toonlivre.net",
+          "https://toonlivre.com"
+        ]
       }
     ]
   }

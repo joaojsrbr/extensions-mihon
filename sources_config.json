@@ -18,7 +18,11 @@
         "id": "2477792955555112202",
         "name": "Toon Livre",
         "lang": "pt-BR",
-        "baseUrl": "https://toonlivre.net"
+        "baseUrl": "https://toonlivre.net",
+        "mirrorUrls": [
+          "https://toonlivre.net",
+          "https://toonlivre.com"
+        ]
       }
     ],
     "nsfw": 1,
