@@ -2,10 +2,10 @@
   {
     "name": "Tachiyomi: Blitz Toons",
     "pkg": "eu.kanade.tachiyomi.extension.pt.blitztoons",
-    "apk": "tachiyomi-pt.blitztoons-v1.6.8.apk",
+    "apk": "tachiyomi-pt.blitztoons-v1.6.9.apk",
     "lang": "pt-BR",
-    "code": 106008,
-    "version": "1.6.8",
+    "code": 106009,
+    "version": "1.6.9",
     "nsfw": 0,
     "hasReadme": 0,
     "hasChangelog": 0,
